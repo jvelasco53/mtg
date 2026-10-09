@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MTG Keyword Guide for New Players</title>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#14121c;--panel:#1d1a29;--line:#322d45;--tx:#ece6d6;--mut:#a39cb8;--acc:#e0b64a;
+--c-evasion:#6fa8e8;--c-combat:#e8735f;--c-protect:#8fd18a;--c-cost:#c79af0;--c-trigger:#e0b64a;--c-action:#7fd1c9;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f2e8;--panel:#fffdf7;--line:#d9d0bb;--tx:#241f33;--mut:#6b6480;--acc:#8a6410;
+--c-evasion:#2b6cb0;--c-combat:#b6402c;--c-protect:#2f7d3a;--c-cost:#7a3fb0;--c-trigger:#8a6410;--c-action:#1b7a73}}
+:root[data-theme="dark"]{--bg:#14121c;--panel:#1d1a29;--line:#322d45;--tx:#ece6d6;--mut:#a39cb8;--acc:#e0b64a}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+h1{font:700 2rem/1.1 Alegreya,Georgia,serif;margin:8px 0 6px}
+.sub{color:var(--mut);margin:0 0 18px}
+.search{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:8px 0 10px;z-index:2}
+input{width:100%;font:inherit;font-size:1.05rem;padding:13px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--tx)}
+input:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px}
+.chip{flex:none;font:inherit;font-size:.85rem;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--mut);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+.count{color:var(--mut);font-size:.85rem;margin:6px 0 10px}
+.card{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--k);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.card h2{font:700 1.35rem/1.2 Alegreya,Georgia,serif;margin:0 0 2px}
+.tag{font-size:.8rem;color:var(--k);margin:0 0 8px}
+.card p{margin:6px 0;max-width:62ch}
+.card b{color:var(--acc)}
+.empty{text-align:center;color:var(--mut);padding:30px 0}
+</style>
+</head>
+<body>
+<main><nav style="margin-bottom:8px"><a href="index.html">Card lookup</a> · <a href="keywords.html">Keyword guide</a></nav>
+<h1>Magic: The Gathering keywords</h1>
+<p class="sub">Type a keyword to see what it does and how to use it.</p>
+<div class="search">
+<input id="q" type="search" placeholder="Try &quot;flying&quot; or &quot;draw&quot;" autocomplete="off" aria-label="Search keywords">
+<div class="chips" id="chips"></div>
+</div>
+<div class="count" id="count"></div>
+<div id="list"></div>
+</main>
+<script>
+const CATS={Evasion:'--c-evasion',Combat:'--c-combat',Protection:'--c-protect',Cost:'--c-cost',Triggers:'--c-trigger',Actions:'--c-action'};
+const K=[
+["Flying","Evasion","This creature can only be blocked by creatures with flying or reach.","Put flyers on offense. Opponents without flyers or reach can't stop them, so they are your steady source of damage."],
+["Reach","Evasion","This creature can block creatures with flying.","Use it as defense against flyers. Reach creatures are usually green, which has few flyers of its own."],
+["Menace","Evasion","This creature can't be blocked except by two or more creatures.","Attack when your opponent has only one or two creatures. They must double-block, which leaves other attackers open."],
+["Trample","Evasion","If this creature is blocked, any extra damage beyond what kills the blocker goes to the player.","A 5/5 trampler blocked by a 2/2 deals 2 to the blocker and 3 to the player. Pump spells on tramplers hit hard."],
+["Fear","Evasion","Can't be blocked except by artifact and/or black creatures.","Works like flying, but against specific colors. Check the opponent's board for black or artifact creatures first."],
+["Intimidate","Evasion","Can't be blocked except by artifact creatures and/or creatures that share a color with it.","Strong against opponents in different colors. Older keyword, replaced by menace and skulk in new sets."],
+["Skulk","Evasion","Can't be blocked by creatures with greater power.","Best on small creatures against opponents with big blockers. Small blockers can still stop it."],
+["Shadow","Evasion","Can block or be blocked only by creatures with shadow.","Nearly unblockable. Rare on modern cards. Your shadow creature also can't block normal creatures."],
+["Horsemanship","Evasion","Can't be blocked except by creatures with horsemanship.","A very old keyword. Treat it as unblockable in practice."],
+["Landwalk (Swampwalk, Islandwalk, etc.)","Evasion","This creature can't be blocked if the defending player controls a land of the named type.","Check what lands the opponent plays. If they have a Forest, a forestwalker can't be blocked."],
+["Vigilance","Combat","Attacking doesn't cause this creature to tap.","Attack and still have a blocker ready on the opponent's turn. Great for aggressive but careful decks."],
+["First strike","Combat","Deals combat damage before creatures without first strike.","A 2/2 first striker beats a 3/3 blocker only if it deals enough to kill it first. Read the numbers before attacking."],
+["Double strike","Combat","Deals first-strike damage and then regular combat damage.","It hits twice, so a 3-power double striker deals 6 if unblocked. Equipment or pump that adds power doubles in value."],
+["Deathtouch","Combat","Any amount of damage this creature deals to a creature is enough to destroy it.","Even a 1/1 deathtoucher trades with the biggest creature. Excellent on defense; opponents often won't attack into it."],
+["Lifelink","Combat","Damage dealt by this creature also gains you that much life.","Gain life whenever it deals damage, including when blocking. Great for racing aggressive decks."],
+["Haste","Combat","This creature can attack and use tap abilities as soon as it enters.","Play it for a surprise hit the turn it arrives. Good for finishing the game when the opponent is low."],
+["Defender","Combat","This creature can't attack.","Walls are cheap, sturdy blockers. They buy time while your engine or bigger threats come online."],
+["Flash","Combat","You may cast this spell any time you could cast an instant.","Hold mana on the opponent's turn to ambush an attacker or counter their plan, then flash in the creature at their end step."],
+["Indestructible","Protection","Destroy effects and lethal damage don't destroy this permanent.","It survives damage and 'destroy' removal, but not exile, -X/-X, or sacrifice. Check for those answers."],
+["Hexproof","Protection","This permanent or player can't be the target of spells or abilities your opponents control.","Opponents can't aim removal at it. It still dies to wrath effects that don't target. Put auras and equipment on it safely."],
+["Ward","Protection","Whenever this becomes the target of a spell or ability an opponent controls, counter it unless they pay the ward cost.","Ward {2} taxes opponents' targeted removal. When you target an opposing ward creature, make sure you can pay."],
+["Protection (from X)","Protection","Can't be damaged, enchanted/equipped, blocked, or targeted by anything of quality X.","Protection from red means red burn can't target it and red creatures can't block it. Great as an evasion trick too."],
+["Shroud","Protection","This permanent or player can't be the target of any spells or abilities, including yours.","Like hexproof but you can't target it either. Rare. It blocks your own auras and equipment."],
+["Unblockable","Evasion","Can't be blocked.","Pure damage. Pair with +power effects or equipment."],
+["Kicker","Cost","You may pay an extra cost when casting to get an additional effect.","Cast cheap early if you need to, or wait and pay kicker later for a bigger effect. Flexible spells scale across the game."],
+["Flashback","Cost","You may cast this card from your graveyard for its flashback cost. Then exile it.","Cast it from hand first, then again from the graveyard. It's two uses from one card."],
+["Equip","Cost","Pay the equip cost to attach this equipment to a creature you control. Sorcery speed only.","Equipment stays when the creature dies, so you can re-equip another creature. Move it onto your best attacker."],
+["Cycling","Cost","Pay the cycling cost and discard this card to draw a card.","Use dead cards in your hand to find lands or action. Saves you from flooding or getting stuck."],
+["Overload","Cost","You may cast this for its overload cost. If you do, change 'target' to 'each' in its text.","A one-target spell becomes a board-wide effect. Save it for a big moment."],
+["Convoke","Cost","Your creatures can help cast this spell. Each creature you tap pays for {1} or one mana of its color.","Cast big spells early by tapping creatures instead of lands. Lets you do multiple things in a turn."],
+["Delve","Cost","Each card you exile from your graveyard while casting this spell pays for {1}.","Fill your graveyard first with discard, mill, and used spells, then cast delve spells for cheap."],
+["Morph / Disguise","Cost","Cast face-down as a 2/2 for {3}. Turn it face up any time you have priority for its morph cost.","Bluff with a 2/2, then flip it at a surprising time. Disguise adds ward {2} while face down."],
+["Evoke","Cost","You may cast this for its evoke cost. If you do, it's sacrificed when it enters.","Get the enter-the-battlefield effect cheaply when you don't need the body. Combine with sacrifice synergies."],
+["Madness","Cost","If you discard this card, you may cast it for its madness cost instead of putting it in your graveyard.","Pair with discard outlets. A card that looks bad to discard becomes a bargain."],
+["Prototype","Cost","You may cast this card as a smaller version for its prototype cost.","Cast the smaller version early and the full-sized artifact creature later when you have the mana."],
+["Cascade","Triggers","When you cast this spell, exile cards from the top of your library until you reveal a cheaper nonland card. You may cast it free.","One spell becomes two. Cascade can't hit cards that cost the same or more, so deck-building matters."],
+["Landfall","Triggers","Whenever a land enters the battlefield under your control, get this effect.","Hold lands in hand and play them one at a time to trigger it each turn. Fetch lands trigger it again."],
+["Prowess","Triggers","Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.","Cast instants and sorceries during combat or before attacking. Cheap spells pump it repeatedly."],
+["Deathtouch + First strike","Combat","Together: the creature kills a blocker or attacker before taking damage.","This combo is extremely strong because it kills first with no risk to itself unless the other has first strike too."],
+["Raid / Revolt / Constellation","Triggers","Reward you if a certain thing happened this turn (attacked, a permanent left, an enchantment entered).","Read the condition and sequence your turn to turn the bonus on. Many such 'ability words' have no rules effect on their own."],
+["Exploit","Triggers","When this creature enters, you may sacrifice a creature.","Sacrifice a weak creature or the exploiter itself for the bonus effect. Use tokens as fodder."],
+["Persist","Triggers","When this creature dies, if it had no -1/-1 counters on it, return it with a -1/-1 counter.","It dies twice before staying dead. Ideal for sacrifice effects and as a repeatable chump blocker."],
+["Undying","Triggers","When this creature dies, if it had no +1/+1 counters, return it with a +1/+1 counter.","It comes back bigger. Sacrifice it once for value, then again when it has a counter if you must."],
+["Proliferate","Actions","Choose any number of permanents or players with counters. Give each another counter of a kind it already has.","Add +1/+1 or loyalty counters to your things only. You choose which ones to grow."],
+["Scry","Actions","Look at the top N cards of your library, then put any number on the bottom and the rest on top in any order.","Keep what you need, send away what you don't. Scry 1 on a land-heavy hand and you can bin a land."],
+["Surveil","Actions","Look at the top N cards. Put any number into your graveyard and the rest on top in any order.","Like scry, but the cards you reject go to the graveyard, which helps delve, flashback, and reanimator."],
+["Mill","Actions","Put the top N cards of a library into its owner's graveyard.","Fuels graveyard strategies or can deck an opponent. Know your plan: is it value or a win condition?"],
+["Fight","Actions","Two creatures each deal damage equal to their power to the other.","Use a big creature to kill a smaller one. Only the two fighting creatures deal damage, so it isn't combat."],
+["Tap / Untap","Actions","Turn a permanent sideways to use it (tap) or upright again (untap).","Tapped creatures can't block, and tapped lands can't produce mana. Untap happens at the start of your turn."],
+["Counter (a spell)","Actions","Stop a spell from resolving. It goes to the graveyard instead.","Hold up the mana on your opponent's turn. Only counter things that matter; use the right spell for the threat."],
+["Exile","Actions","Remove a card from the game. It doesn't go to the graveyard.","The best way to get rid of things with recursion, indestructible, or graveyard abilities."],
+["Sacrifice","Actions","Put a permanent you control into the graveyard as a cost or effect. It isn't 'destroyed'.","Use it for value, or in response to removal so the opponent gets nothing. Indestructible doesn't stop it."],
+["Token","Actions","A permanent made by an effect, not from a card. It ceases to exist outside the battlefield.","Tokens block, attack, and carry equipment like regular creatures. Great for going wide and for sacrifice fodder."],
+["Counters (+1/+1, loyalty, etc.)","Actions","Markers placed on a permanent that change it or track a number.","Plus and minus counters cancel each other out. Loyalty counters track planeswalkers."],
+["Mulligan","Actions","Shuffle your hand into your library and draw a new hand, usually with a penalty.","Take it when your hand has no lands or only lands. A smaller, playable hand beats a greedy one."],
+["Commander tax","Cost","In Commander, casting your commander from the command zone costs {2} more for each previous time you cast it.","It makes recasting expensive. Plan your mana for it, and don't waste your commander early."]
+];
+const qEl=document.getElementById('q'),list=document.getElementById('list'),chips=document.getElementById('chips'),count=document.getElementById('count');
+let cat='All';
+['All',...Object.keys(CATS)].forEach(c=>{const b=document.createElement('button');b.className='chip';b.textContent=c;b.setAttribute('aria-pressed',c==='All');b.onclick=()=>{cat=c;[...chips.children].forEach(x=>x.setAttribute('aria-pressed',x.textContent===c));render()};chips.appendChild(b)});
+const esc=s=>s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+function render(){
+const q=qEl.value.trim().toLowerCase();
+let r=K.filter(k=>(cat==='All'||k[1]===cat)&&(!q||k[0].toLowerCase().includes(q)||k[2].toLowerCase().includes(q)||k[3].toLowerCase().includes(q)));
+if(q)r.sort((a,b)=>(b[0].toLowerCase().startsWith(q)-a[0].toLowerCase().startsWith(q))||(b[0].toLowerCase().includes(q)-a[0].toLowerCase().includes(q)));
+else r.sort((a,b)=>a[0].localeCompare(b[0]));
+count.textContent=r.length+(r.length===1?' keyword':' keywords');
+list.innerHTML=r.length?r.map(k=>`<article class="card" style="--k:var(${CATS[k[1]]})"><h2>${esc(k[0])}</h2><p class="tag">${k[1]}</p><p><b>What it does:</b> ${esc(k[2])}</p><p><b>How to use it:</b> ${esc(k[3])}</p></article>`).join(''):'<div class="empty">No match. Try a shorter word, like "fly" or "draw".</div>';
+}
+qEl.addEventListener('input',render);render();
+</script>
+</body>
+</html>
